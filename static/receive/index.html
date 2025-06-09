@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Receive</title>
+        <style>
+            
+        </style>
+    </head>
+    <body>
+        <input type="text" id="pwdInput" placeholder="Enter Connection ID"></input>
+        <button id="connectButton">Connect</button>
+        <span id="status"></span>
+        <br>
+        <button id="serialButton">Connect Serial Device</button>
+        <span id="serialStatus"></span>
+    </body>
+    <script>
+        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const socket = new WebSocket(`${protocol}://${window.location.host}/api/receive`);
+        
+        let connected = false;
+        let serialWriter = null;
+
+        socket.addEventListener('open', () => {
+            const pwdInput = document.getElementById('pwdInput');
+            const connectButton = document.getElementById('connectButton');
+            const status = document.getElementById('status');
+
+            connectButton.addEventListener('click', (event) => {
+                if (connected) {
+                    return;
+                }
+
+                const connectionId = pwdInput.value.trim();
+                socket.send(JSON.stringify({ EstablishConnection: connectionId }));
+                status.textContent = `Waiting for commands on ID '${connectionId}'`;
+
+                connectButton.disabled = true;
+            });
+        });
+
+        socket.addEventListener('message', (event) => {
+            const data = JSON.parse(event.data);
+
+            switch (data) {
+                case 'Fire':
+                    console.log('Received Fire command');
+                    if (serialWriter) {
+                        serialWriter.write(new TextEncoder().encode('FIRE\n'));
+                    }                     
+                    break;
+                default:
+                    console.log('Unknown message type:', data);
+            }
+
+        });
+
+        document.getElementById('serialButton').addEventListener('click', async () => {
+            if (!("serial" in navigator)) {
+                alert("this browser doesn't support webserial. please use a compatible browser (chrome).");
+                return;
+            }
+
+            try {
+                const port = await navigator.serial.requestPort();
+                await port.open({ baudRate: 9600 });
+                serialWriter = port.writable.getWriter();
+                document.getElementById('serialStatus').textContent = 'Connected to serial device';
+            } catch (error) {
+                console.error('Error connecting to serial device:', error);
+            }
+        });
+    </script>
+</html>

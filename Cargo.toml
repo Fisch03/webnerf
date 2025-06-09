@@ -1,0 +1,15 @@
+[package]
+name = "webnerf"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+axum = { version = "0.8", features = ["ws"] }
+tower-http = { version = "0.6", features = ["fs"] }
+
+log = "0.4"
+colog = "1"
+
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

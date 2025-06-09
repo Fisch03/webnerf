@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Send</title>
+        <style>
+            #sendButton {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+
+                width: 25%;
+                height: 25%;
+
+                font-size: 2em;
+
+                transform: translate(-50%, -50%);
+            }
+        </style>
+    </head>
+    <body>
+        <input type="text" id="pwdInput" placeholder="Enter Connection ID"></input>
+        <button id="connectButton">Connect</button>
+        <span id="status"></span>
+        <button id="sendButton">SHOOT!</button>
+    </body>
+
+    <script>
+        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const socket = new WebSocket(`${protocol}://${window.location.host}/api/send`);
+        socket.addEventListener('open', () => {
+            document.getElementById('sendButton').addEventListener('click', () => {
+                socket.send(JSON.stringify("Fire"));
+            });
+
+            const pwdInput = document.getElementById('pwdInput');
+            const connectButton = document.getElementById('connectButton');
+            const status = document.getElementById('status');
+
+            connectButton.addEventListener('click', (event) => {
+                const connectionId = pwdInput.value.trim();
+                socket.send(JSON.stringify({ EstablishConnection: connectionId }));
+                status.textContent = `Connected with ID '${connectionId}'`;
+            });
+        });
+
+    </script>
+</html>

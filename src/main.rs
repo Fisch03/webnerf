@@ -25,6 +25,7 @@ struct AppState {
 enum Command {
     EstablishConnection(String),
     Fire,
+    Release,
 }
 
 #[tokio::main]
@@ -43,6 +44,7 @@ async fn main() {
         .await
         .expect("Failed to bind to address");
 
+    log::info!("Server listening on {}", listener.local_addr().unwrap());
     axum::serve(
         listener,
         app.into_make_service_with_connect_info::<SocketAddr>(),
@@ -123,17 +125,17 @@ async fn send_handler(
             tokio::select! {
                 Some(Ok(Message::Text(data))) = socket.recv() => {
                     match serde_json::from_str::<Command>(&data) {
-                        Ok(Command::Fire) => {
+                        Ok(Command::EstablishConnection(new_pwd)) => pwd = new_pwd,
+                        Ok(cmd) => {
                             let open_connections = state.open_connections.lock().unwrap();
                             if let Some(sender) = open_connections.get(&pwd) {
-                                sender.send(Command::Fire).unwrap_or_else(|e| {
+                                sender.send(cmd).unwrap_or_else(|e| {
                                     log::error!("Failed to send command to receiver: {}", e);
                                 });
                             } else {
                                 log::warn!("No receiver found for password: {}", pwd);
                             }
                         },
-                        Ok(Command::EstablishConnection(new_pwd)) => pwd = new_pwd,
 
                         Err(_) => {
                             log::error!("Sender {:?} sent invalid command: {}", socket_addr, data);

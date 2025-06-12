@@ -29,8 +29,11 @@
         const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
         const socket = new WebSocket(`${protocol}://${window.location.host}/api/send`);
         socket.addEventListener('open', () => {
-            document.getElementById('sendButton').addEventListener('click', () => {
+            document.getElementById('sendButton').addEventListener('mousedown', () => {
                 socket.send(JSON.stringify("Fire"));
+            });
+            document.getElementById('sendButton').addEventListener('mouseup', () => {
+                socket.send(JSON.stringify("Release"));
             });
 
             const pwdInput = document.getElementById('pwdInput');

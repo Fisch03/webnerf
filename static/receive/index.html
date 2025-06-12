@@ -50,6 +50,12 @@
                         serialWriter.write(new TextEncoder().encode('FIRE\n'));
                     }                     
                     break;
+                case 'Release':
+                    console.log('Received Release command');
+                    if (serialWriter) {
+                        serialWriter.write(new TextEncoder().encode('RELEASE\n'));
+                    }
+                    break;
                 default:
                     console.log('Unknown message type:', data);
             }
